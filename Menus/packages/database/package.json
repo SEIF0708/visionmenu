@@ -1,0 +1,17 @@
+{
+  "name": "@ar-menu/database",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "db:push": "supabase db push",
+    "db:types": "supabase gen types typescript --local > types/database.ts",
+    "db:seed": "ts-node src/seed.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.0"
+  },
+  "devDependencies": {
+    "@supabase/cli": "^1.0.0",
+    "typescript": "^5.8.0"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "name": "@ar-menu/config",
+  "version": "0.0.0",
+  "private": true,
+  "files": [
+    "tailwind.config.ts",
+    "tsconfig.base.json"
+  ]
+}

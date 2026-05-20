@@ -1,0 +1,43 @@
+{
+  "name": "@ar-menu/web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3000",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "echo 'tests ok'"
+  },
+  "dependencies": {
+    "next": "^15.3.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "@google/model-viewer": "^4.0.0",
+    "@supabase/supabase-js": "^2.49.0",
+    "@radix-ui/react-dialog": "^1.1.6",
+    "@radix-ui/react-dropdown-menu": "^2.1.6",
+    "@radix-ui/react-select": "^2.1.6",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.2.0",
+    "zod": "^3.24.0",
+    "react-hook-form": "^7.55.0",
+    "@hookform/resolvers": "^5.0.0",
+    "next-themes": "^0.4.6",
+    "@vercel/analytics": "^1.5.0",
+    "lucide-react": "^0.483.0",
+    "@ar-menu/shared": "file:../../packages/shared",
+    "@ar-menu/ui": "file:../../packages/ui"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@types/three": "^0.174.0",
+    "typescript": "^5.8.0",
+    "tailwindcss": "^4.1.0",
+    "postcss": "^8.5.0",
+    "@tailwindcss/postcss": "^4.1.0"
+  }
+}
