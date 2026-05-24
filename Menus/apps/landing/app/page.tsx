@@ -116,14 +116,6 @@ const VolumetricSteam = ({ className, delay }: { className?: string; delay: numb
     }}
   />
 );
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      'model-viewer': any;
-    }
-  }
-}
-
 export default function LandingPage() {
   const ModelViewer: any = 'model-viewer';
   const containerRef = useRef<HTMLDivElement>(null);
