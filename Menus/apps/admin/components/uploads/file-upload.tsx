@@ -13,6 +13,7 @@ interface FileUploadProps {
   maxSize: number;
   uploadEndpoint: string;
   onUploadComplete: (data: Record<string, unknown>) => void;
+  onFileSelect?: (file: File) => void;
   previewUrl?: string | null;
   previewType?: "image" | "file";
   fileName?: string | null;
@@ -27,6 +28,7 @@ export function FileUpload({
   maxSize,
   uploadEndpoint,
   onUploadComplete,
+  onFileSelect,
   previewUrl,
   previewType = "file",
   fileName,
@@ -76,9 +78,12 @@ export function FileUpload({
         return;
       }
       const file = accepted[0];
-      if (file) uploadFile(file);
+      if (file) {
+        onFileSelect?.(file);
+        uploadFile(file);
+      }
     },
-    [uploadFile]
+    [uploadFile, onFileSelect]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({

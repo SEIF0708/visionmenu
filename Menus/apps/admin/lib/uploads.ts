@@ -2,6 +2,7 @@ import { randomUUID } from "crypto";
 
 export const IMAGE_MAX_BYTES = 5 * 1024 * 1024; // 5MB
 export const MODEL_MAX_BYTES = 20 * 1024 * 1024; // 20MB
+export const AR_RECOMMENDED_MAX_BYTES = 5 * 1024 * 1024; // 5MB — files larger than this may fail on mobile AR
 
 export const IMAGE_MIME_TYPES = [
   "image/jpeg",
