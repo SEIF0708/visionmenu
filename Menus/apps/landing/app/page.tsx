@@ -247,7 +247,7 @@ export default function LandingPage() {
             className="flex items-center gap-5"
           >
             <Link 
-              href="http://localhost:3001/login"
+              href={`${process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3001'}/login`}
               className="text-sm font-semibold text-neutral-400 hover:text-neutral-50 transition-colors"
             >
               Sign In
