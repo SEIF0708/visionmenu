@@ -1,12 +1,5 @@
 {
-  "buildCommand": "pnpm turbo build",
-  "devCommand": "pnpm turbo dev",
+  "buildCommand": "npm run build",
   "framework": "nextjs",
-  "regions": ["iad1"],
-  "functions": {
-    "apps/web/app/api/**": {
-      "memory": 1024,
-      "maxDuration": 10
-    }
-  }
+  "regions": ["iad1"]
 }

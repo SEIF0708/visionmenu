@@ -53,6 +53,13 @@ interface ModelViewerProps {
   children?: ReactNode;
   slot?: string;
 }
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'model-viewer': any;
+    }
+  }
+}
 
 export const ModelViewer = forwardRef<ModelViewerElement, ModelViewerProps>(
   (props, ref) => {

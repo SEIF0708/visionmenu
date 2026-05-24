@@ -116,8 +116,16 @@ const VolumetricSteam = ({ className, delay }: { className?: string; delay: numb
     }}
   />
 );
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'model-viewer': any;
+    }
+  }
+}
 
 export default function LandingPage() {
+  const ModelViewer: any = 'model-viewer';
   const containerRef = useRef<HTMLDivElement>(null);
   
   // Parallax Scroll-linked states
@@ -247,7 +255,7 @@ export default function LandingPage() {
             className="flex items-center gap-5"
           >
             <Link 
-              href="https://admin.ar-menu.com"
+              href="http://localhost:3001/login"
               className="text-sm font-semibold text-neutral-400 hover:text-neutral-50 transition-colors"
             >
               Sign In
@@ -386,7 +394,7 @@ export default function LandingPage() {
 
             {/* Giant Luxury 3D Full Pizza canvas */}
             <div className="w-full h-full p-6 rounded-full border border-white/5 bg-neutral-950/15 backdrop-blur-[2px] relative overflow-hidden group shadow-3xl shadow-black/80">
-              <model-viewer
+              <ModelViewer
                 src="/pizza.glb"
                 alt="VisionMenu Luxury 3D Pizza"
                 auto-rotate
@@ -600,7 +608,7 @@ export default function LandingPage() {
 
                     {/* Placed 3D Pizza rendering naturally on the Plate */}
                     <div className="absolute bottom-[10%] left-0 right-0 h-[42%] z-20 flex items-center justify-center">
-                      <model-viewer
+                      <ModelViewer
                         src="/pizza.glb"
                         alt="3D Pizza Simulation"
                         auto-rotate
