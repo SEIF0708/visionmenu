@@ -24,15 +24,20 @@ export default async function QRCodesPage() {
           .order("generated_at", { ascending: false })
       : { data: [] };
 
-  const webAppUrl =
-    process.env.NEXT_PUBLIC_WEB_APP_URL ||
-    process.env.NEXT_PUBLIC_APP_URL?.replace(":3001", ":3000") ||
-    "http://localhost:3000";
+  const webAppUrl = process.env.NEXT_PUBLIC_WEB_APP_URL || "";
+  const webAppUrlMissing = !webAppUrl;
 
   const totalQR = qrCodes?.length || 0;
 
   return (
     <div className="space-y-6">
+      {webAppUrlMissing && (
+        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4 text-sm text-amber-400">
+          ⚠ <strong>NEXT_PUBLIC_WEB_APP_URL</strong> not set. QR codes will
+          use the wrong URL. Add it to your Vercel project environment
+          variables and redeploy.
+        </div>
+      )}
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
