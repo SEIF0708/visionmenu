@@ -40,13 +40,19 @@ export function ModelUpload({
         required={required}
         onUploadingChange={onUploadingChange}
         onUploadComplete={(data) => {
-          // Prefer the optimized GLB URL if available
-          const url = typeof data.optimizedUrl === "string" ? data.optimizedUrl : data.url;
-          const sizeMb = typeof data.optimizedSizeMb === "number"
-            ? data.optimizedSizeMb
-            : typeof data.sizeMb === "number"
-            ? data.sizeMb
-            : undefined;
+          const d = data as Record<string, unknown>;
+          const url =
+            typeof d.optimizedUrl === "string"
+              ? d.optimizedUrl
+              : typeof d.url === "string"
+                ? d.url
+                : "";
+          const sizeMb =
+            typeof d.optimizedSizeMb === "number"
+              ? d.optimizedSizeMb
+              : typeof d.sizeMb === "number"
+                ? d.sizeMb
+                : undefined;
           onChange(url, sizeMb);
           setFileSize(sizeMb ?? null);
           setFileLabel("model.glb");
