@@ -40,13 +40,16 @@ export function ModelUpload({
         required={required}
         onUploadingChange={onUploadingChange}
         onUploadComplete={(data) => {
-          if (typeof data.url === "string") {
-            const sizeMb =
-              typeof data.sizeMb === "number" ? data.sizeMb : undefined;
-            onChange(data.url, sizeMb);
-            setFileSize(sizeMb ?? null);
-            setFileLabel("model.glb");
-          }
+          // Prefer the optimized GLB URL if available
+          const url = typeof data.optimizedUrl === "string" ? data.optimizedUrl : data.url;
+          const sizeMb = typeof data.optimizedSizeMb === "number"
+            ? data.optimizedSizeMb
+            : typeof data.sizeMb === "number"
+            ? data.sizeMb
+            : undefined;
+          onChange(url, sizeMb);
+          setFileSize(sizeMb ?? null);
+          setFileLabel("model.glb");
         }}
         onFileSelect={(file: File) => setFileSize(file.size / (1024 * 1024))}
       />

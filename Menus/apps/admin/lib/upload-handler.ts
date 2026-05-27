@@ -42,30 +42,55 @@ export async function uploadImageFile(file: File) {
   };
 }
 
+import { optimizeGlb } from "@/lib/glb-optimizer";
+
 export async function uploadModelFile(file: File) {
   const error = validateModelFile(file);
   if (error) throw new Error(error);
 
   const ctx = await requireUploadContext();
-  const path = buildStoragePath(ctx.organizationId, "glb");
-  const buffer = Buffer.from(await file.arrayBuffer());
+  const originalPath = buildStoragePath(ctx.organizationId, "glb");
+  const originalBuffer = Buffer.from(await file.arrayBuffer());
 
   const supabase = await createClient();
-  const { error: uploadError } = await supabase.storage
+  // Upload original file
+  const { error: uploadErrorOriginal } = await supabase.storage
     .from("models")
-    .upload(path, buffer, {
+    .upload(originalPath, originalBuffer, {
       contentType: "model/gltf-binary",
       upsert: false,
     });
+  if (uploadErrorOriginal) throw new Error(uploadErrorOriginal.message);
 
-  if (uploadError) throw new Error(uploadError.message);
+  // Optimize GLB
+  let optimizedBuffer: Buffer;
+  try {
+    optimizedBuffer = await optimizeGlb(originalBuffer);
+  } catch (optErr) {
+    console.error("GLB optimization failed", optErr);
+    // Fallback: no optimized version
+    optimizedBuffer = originalBuffer;
+  }
 
-  const sizeMb = Math.round((file.size / (1024 * 1024)) * 100) / 100;
+  const optimizedPath = buildStoragePath(ctx.organizationId, "opt.glb");
+  const { error: uploadErrorOptimized } = await supabase.storage
+    .from("models")
+    .upload(optimizedPath, optimizedBuffer, {
+      contentType: "model/gltf-binary",
+      upsert: false,
+    });
+  if (uploadErrorOptimized) throw new Error(uploadErrorOptimized.message);
+
+  const originalSizeMb = Math.round((originalBuffer.length / (1024 * 1024)) * 100) / 100;
+  const optimizedSizeMb = Math.round((optimizedBuffer.length / (1024 * 1024)) * 100) / 100;
 
   return {
-    url: getPublicStorageUrl("models", path),
-    path,
-    sizeMb,
+    originalUrl: getPublicStorageUrl("models", originalPath),
+    optimizedUrl: getPublicStorageUrl("models", optimizedPath),
+    originalSizeMb,
+    optimizedSizeMb,
+    originalPath,
+    optimizedPath,
   };
 }
 
