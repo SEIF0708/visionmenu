@@ -68,14 +68,26 @@ export function FileUpload({
         }
 
         if (!json.success) {
-          throw new Error(json.error ?? "Upload failed");
+          const errMsg = typeof json.error === "string" ? json.error : (json.error?.message || "Upload failed");
+          throw new Error(errMsg);
         }
 
         setState("success");
         onUploadComplete(json.data);
-      } catch (err) {
+      } catch (err: any) {
+        console.error("Upload error caught:", err);
         setState("error");
-        setError(err instanceof Error ? err.message : "Upload failed");
+        
+        let errorMessage = "Upload failed";
+        if (err instanceof Error) {
+          errorMessage = err.message;
+        } else if (typeof err === "string") {
+          errorMessage = err;
+        } else if (err && typeof err === "object") {
+          errorMessage = err.message || err.type || "Network Error or Payload Too Large";
+        }
+        
+        setError(errorMessage);
       } finally {
         onUploadingChange?.(false);
       }
