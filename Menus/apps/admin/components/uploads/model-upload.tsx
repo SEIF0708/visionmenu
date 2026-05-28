@@ -4,6 +4,7 @@ import { useState } from "react";
 import { FileUpload } from "./file-upload";
 import { MODEL_MAX_BYTES, AR_RECOMMENDED_MAX_BYTES } from "@/lib/uploads";
 import { AlertTriangle } from "lucide-react";
+import { uploadModelAction } from "@/app/actions/upload-actions";
 
 interface ModelUploadProps {
   value: string;
@@ -21,6 +22,7 @@ export function ModelUpload({
   const [fileLabel, setFileLabel] = useState<string | null>(
     value ? "model.glb" : null
   );
+  const [optimizing, setOptimizing] = useState(false);
   const [fileSize, setFileSize] = useState<number | null>(null);
 
   return (
@@ -33,7 +35,7 @@ export function ModelUpload({
           "application/octet-stream": [".glb"],
         }}
         maxSize={MODEL_MAX_BYTES}
-        uploadEndpoint="/api/uploads/model"
+        serverAction={uploadModelAction}
         previewUrl={value || null}
         previewType="file"
         fileName={fileLabel}
@@ -42,20 +44,17 @@ export function ModelUpload({
         onUploadComplete={(data) => {
           const d = data as Record<string, unknown>;
           const url =
-            typeof d.optimizedUrl === "string"
-              ? d.optimizedUrl
-              : typeof d.url === "string"
-                ? d.url
-                : "";
+            typeof d.url === "string"
+              ? d.url
+              : "";
           const sizeMb =
-            typeof d.optimizedSizeMb === "number"
-              ? d.optimizedSizeMb
-              : typeof d.sizeMb === "number"
-                ? d.sizeMb
-                : undefined;
+            typeof d.sizeMb === "number"
+              ? d.sizeMb
+              : undefined;
           onChange(url, sizeMb);
           setFileSize(sizeMb ?? null);
           setFileLabel("model.glb");
+          setOptimizing(false);
         }}
         onFileSelect={(file: File) => setFileSize(file.size / (1024 * 1024))}
       />
@@ -72,6 +71,12 @@ export function ModelUpload({
               with Draco compression to reduce size.
             </p>
           </div>
+        </div>
+      )}
+      {/* Optimization progress UI */}
+      {optimizing && (
+        <div className="flex items-center gap-2 rounded-lg border border-blue-500/30 bg-blue-500/5 p-3 text-sm text-blue-400">
+          <span className="animate-pulse font-medium">Optimizing GLB model... This may take a minute.</span>
         </div>
       )}
     </div>

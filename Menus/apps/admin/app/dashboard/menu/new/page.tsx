@@ -16,6 +16,7 @@ import {
   Plus,
   Trash2,
 } from "lucide-react";
+import { ModelUpload } from "@/components/uploads/model-upload";
 
 const categories = ["Pizza", "Burgers", "Drinks", "Desserts", "Appetizers", "Salads", "Pasta", "Seafood"];
 const allergenOptions = ["Gluten", "Dairy", "Nuts", "Eggs", "Soy", "Fish", "Shellfish", "Sesame"];
@@ -39,7 +40,9 @@ export default function AddMenuItemPage() {
   });
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  const [model, setModel] = useState<File | null>(null);
+  const [modelUrl, setModelUrl] = useState<string>("");
+  const [modelSizeMb, setModelSizeMb] = useState<number | null>(null);
+  const [isUploadingModel, setIsUploadingModel] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [newIngredient, setNewIngredient] = useState("");
@@ -62,13 +65,6 @@ export default function AddMenuItemPage() {
     }
   }, []);
 
-  const handleModelDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    const file = e.dataTransfer.files[0];
-    if (file && file.name.endsWith(".glb")) {
-      setModel(file);
-    }
-  }, []);
 
   const addIngredient = () => {
     if (newIngredient.trim() && !item.ingredients.includes(newIngredient.trim())) {
@@ -113,7 +109,7 @@ export default function AddMenuItemPage() {
       const slug = item.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") + "-" + Math.random().toString(36).substring(2, 6);
 
       let imageUrl = null;
-      let modelUrl = "pending";
+      let finalModelUrl = modelUrl || "pending";
 
       if (photo) {
         const photoPath = `${orgId}/${itemId}/${photo.name}`;
@@ -123,16 +119,6 @@ export default function AddMenuItemPage() {
         if (photoErr) throw photoErr;
         const { data: pubData } = supabase.storage.from("images").getPublicUrl(photoPath);
         imageUrl = pubData.publicUrl;
-      }
-
-      if (model) {
-        const modelPath = `${orgId}/${itemId}/${model.name}`;
-        const { error: modelErr } = await supabase.storage
-          .from("models")
-          .upload(modelPath, model, { upsert: true });
-        if (modelErr) throw modelErr;
-        const { data: pubData } = supabase.storage.from("models").getPublicUrl(modelPath);
-        modelUrl = pubData.publicUrl;
       }
 
       const { error: insertErr } = await supabase
@@ -150,7 +136,7 @@ export default function AddMenuItemPage() {
           calories: item.calories ? Number(item.calories) : null,
           allergens: item.allergens.length > 0 ? item.allergens : null,
           image_url: imageUrl,
-          model_url: modelUrl,
+          model_url: finalModelUrl,
           published_at: new Date().toISOString(),
         });
 
@@ -165,9 +151,10 @@ export default function AddMenuItemPage() {
 
   const steps = [
     { num: 1, label: "Basic Info" },
-    { num: 2, label: "Media Upload" },
-    { num: 3, label: "Details" },
-    { num: 4, label: "Review" },
+    { num: 2, label: "Photo" },
+    { num: 3, label: "3D Model" },
+    { num: 4, label: "Details" },
+    { num: 5, label: "Review" },
   ];
 
   return (
@@ -272,11 +259,9 @@ export default function AddMenuItemPage() {
         </div>
       )}
 
-      {/* Step 2: Media Upload */}
+      {/* Step 2: Photo Upload */}
       {step === 2 && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Photo Upload */}
-          <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] p-6 space-y-4">
+        <div className="max-w-xl mx-auto rounded-2xl bg-white/[0.02] border border-white/[0.06] p-6 space-y-4">
             <div className="flex items-center gap-2">
               <Image className="w-5 h-5 text-[#FF8A33]" />
               <h3 className="font-semibold text-white">Food Photo</h3>
@@ -312,75 +297,40 @@ export default function AddMenuItemPage() {
                 onChange={(e) => handlePhotoChange(e.target.files?.[0] ?? null)}
               />
             </div>
-          </div>
-
-          {/* 3D Model Upload */}
-          <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Box className="w-5 h-5 text-purple-400" />
-                <h3 className="font-semibold text-white">3D Model</h3>
-              </div>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 font-medium">
-                AR Ready
-              </span>
-            </div>
-            <div
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={handleModelDrop}
-              className="relative border-2 border-dashed border-white/[0.1] rounded-xl p-8 text-center hover:border-purple-500/30 transition-colors cursor-pointer"
-              onClick={() => document.getElementById("model-input")?.click()}
-            >
-              {model ? (
-                <div className="flex items-center justify-between p-3 bg-white/[0.04] rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                      <Box className="w-5 h-5 text-purple-400" />
-                    </div>
-                    <div className="text-left">
-                      <p className="text-sm text-white font-medium">{model.name}</p>
-                      <p className="text-xs text-neutral-500">{(model.size / 1024 / 1024).toFixed(2)} MB</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setModel(null); }}
-                    className="w-7 h-7 rounded-full bg-white/[0.06] flex items-center justify-center text-neutral-400 hover:text-white"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <Box className="w-8 h-8 text-neutral-500 mx-auto mb-3" />
-                  <p className="text-sm text-neutral-400 mb-1">Drag & drop .glb model</p>
-                  <p className="text-xs text-neutral-500">GLB/GLTF format for AR viewing</p>
-                </>
-              )}
-              <input
-                id="model-input"
-                type="file"
-                accept=".glb,.gltf"
-                className="hidden"
-                onChange={(e) => setModel(e.target.files?.[0] ?? null)}
-              />
-            </div>
-
-            {/* AI Enhancement Toggle */}
-            <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[#FF8A33]" />
-                <span className="text-sm text-neutral-300">AI Enhancement</span>
-              </div>
-              <div className="w-10 h-6 rounded-full bg-[#FF6B00] relative cursor-pointer">
-                <div className="w-4 h-4 rounded-full bg-white absolute top-1 translate-x-5" />
-              </div>
-            </div>
-          </div>
         </div>
       )}
 
-      {/* Step 3: Details */}
+      {/* Step 3: 3D Model Optimization */}
       {step === 3 && (
+        <div className="max-w-xl mx-auto rounded-2xl bg-white/[0.02] border border-white/[0.06] p-6 space-y-6">
+          <div>
+            <h3 className="text-lg font-semibold text-white mb-1">3D Model Optimization</h3>
+            <p className="text-sm text-neutral-400">Upload a GLB file. It will be automatically optimized and compressed for mobile AR.</p>
+          </div>
+          
+          <ModelUpload
+            value={modelUrl}
+            onChange={(url, size) => {
+              setModelUrl(url);
+              if (size) setModelSizeMb(size);
+            }}
+            onUploadingChange={setIsUploadingModel}
+          />
+          
+          {modelUrl && modelSizeMb && (
+            <div className="flex items-start gap-3 p-4 rounded-xl bg-green-500/10 border border-green-500/20">
+              <Check className="w-5 h-5 text-green-400 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-green-400">Optimization Complete</p>
+                <p className="text-xs text-green-500/80 mt-0.5">Final size: {modelSizeMb} MB. Ready for AR viewing!</p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Step 4: Details */}
+      {step === 4 && (
         <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] p-6 space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
@@ -468,8 +418,8 @@ export default function AddMenuItemPage() {
         </div>
       )}
 
-      {/* Step 4: Review */}
-      {step === 4 && (
+      {/* Step 5: Review */}
+      {step === 5 && (
         <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] p-6 space-y-6">
           <h3 className="font-semibold text-white">Review Your Item</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -510,7 +460,7 @@ export default function AddMenuItemPage() {
                   </p>
                   <p className="text-sm text-neutral-300 flex items-center gap-2">
                     <Box className="w-3.5 h-3.5" />
-                    {model ? model.name : "No 3D model"}
+                    {modelUrl ? `Optimized Model (${modelSizeMb ? modelSizeMb + ' MB' : 'Ready'})` : "No 3D model"}
                   </p>
                 </div>
               </div>
@@ -541,11 +491,12 @@ export default function AddMenuItemPage() {
           Back
         </button>
 
-        {step < 4 ? (
+        {step < 5 ? (
           <button
             type="button"
             onClick={() => setStep(step + 1)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF6B00] to-[#FF8A33] text-white font-semibold text-sm shadow-lg shadow-orange-500/20 hover:shadow-orange-500/30 hover:scale-[1.01] transition-all"
+            disabled={step === 3 && isUploadingModel}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF6B00] to-[#FF8A33] text-white font-semibold text-sm shadow-lg shadow-orange-500/20 hover:shadow-orange-500/30 hover:scale-[1.01] disabled:opacity-50 disabled:hover:scale-100 transition-all"
           >
             Next
             <ChevronRight className="w-4 h-4" />

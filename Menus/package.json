@@ -23,6 +23,6 @@
   "packageManager": "npm@11.6.2",
   "dependencies": {
     "@gltf-transform/core": "^4.3.0",
-    "@gltf-transform/functions": "^4.3.0"
+    "@gltf-transform/draco": "^4.3.0"
   }
 }

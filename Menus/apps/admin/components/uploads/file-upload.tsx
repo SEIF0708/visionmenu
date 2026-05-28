@@ -11,7 +11,8 @@ interface FileUploadProps {
   hint?: string;
   accept: Accept;
   maxSize: number;
-  uploadEndpoint: string;
+  uploadEndpoint?: string;
+  serverAction?: (formData: FormData) => Promise<{ success: boolean; data?: any; error?: string }>;
   onUploadComplete: (data: Record<string, unknown>) => void;
   onFileSelect?: (file: File) => void;
   previewUrl?: string | null;
@@ -27,6 +28,7 @@ export function FileUpload({
   accept,
   maxSize,
   uploadEndpoint,
+  serverAction,
   onUploadComplete,
   onFileSelect,
   previewUrl,
@@ -48,13 +50,24 @@ export function FileUpload({
       body.append("file", file);
 
       try {
-        const res = await fetch(uploadEndpoint, {
-          method: "POST",
-          body,
-        });
-        const json = await res.json();
+        let json;
+        if (serverAction) {
+          json = await serverAction(body);
+        } else if (uploadEndpoint) {
+          const res = await fetch(uploadEndpoint, {
+            method: "POST",
+            body,
+          });
+          json = await res.json();
+          if (!res.ok && !json.error) {
+            json.error = "Upload failed";
+            json.success = false;
+          }
+        } else {
+          throw new Error("No upload handler provided");
+        }
 
-        if (!res.ok || !json.success) {
+        if (!json.success) {
           throw new Error(json.error ?? "Upload failed");
         }
 
@@ -67,7 +80,7 @@ export function FileUpload({
         onUploadingChange?.(false);
       }
     },
-    [uploadEndpoint, onUploadComplete, onUploadingChange]
+    [uploadEndpoint, serverAction, onUploadComplete, onUploadingChange]
   );
 
   const onDrop = useCallback(
